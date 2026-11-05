@@ -1,32 +1,48 @@
+import React from 'react'
 import { Badge } from '@/components/ui/badge'
-import type { InsightItem } from '@/types'
+import { cn } from '@/lib/utils'
 
-type Priority = InsightItem['priority']
+export type Priority = 'critical' | 'high' | 'medium' | 'low'
+
+export interface PriorityBadgeProps {
+  priority: Priority
+  className?: string
+}
 
 const config: Record<Priority, { label: string; className: string }> = {
   critical: {
     label: 'Kritis',
-    className: 'bg-priority-critical text-priority-critical-foreground hover:bg-priority-critical',
+    className: 'bg-priority-critical text-white hover:bg-priority-critical border-transparent',
   },
   high: {
     label: 'Tinggi',
-    className: 'bg-priority-high text-priority-high-foreground hover:bg-priority-high',
+    className: 'bg-priority-high text-white hover:bg-priority-high border-transparent',
   },
   medium: {
     label: 'Sedang',
-    className: 'bg-priority-medium text-priority-medium-foreground hover:bg-priority-medium',
+    className: 'bg-priority-medium text-neutral-950 hover:bg-priority-medium border-transparent font-semibold',
   },
   low: {
     label: 'Rendah',
-    className: 'bg-priority-low text-priority-low-foreground hover:bg-priority-low',
+    className: 'bg-priority-low text-white hover:bg-priority-low border-transparent',
   },
 }
 
-export default function PriorityBadge({ priority }: { priority: Priority }) {
-  const { label, className } = config[priority]
+/**
+ * Server Component: Priority badge for AI insights with color coding and pulsing critical indicator.
+ */
+export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
+  const { label, className: priorityClassName } = config[priority]
 
   return (
-    <Badge className={`gap-1.5 ${className}`}>
+    <Badge
+      variant="outline"
+      className={cn(
+        'inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium',
+        priorityClassName,
+        className
+      )}
+    >
       {priority === 'critical' && (
         <span className="relative flex h-1.5 w-1.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
@@ -37,3 +53,5 @@ export default function PriorityBadge({ priority }: { priority: Priority }) {
     </Badge>
   )
 }
+
+export default PriorityBadge
