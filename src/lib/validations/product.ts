@@ -6,11 +6,13 @@ import { z } from 'zod'
 export const productSchema = z.object({
   name: z
     .string({ message: 'Nama produk wajib diisi' })
+    .min(1, 'Nama produk wajib diisi')
     .min(2, 'Nama produk minimal 2 karakter')
     .max(100, 'Nama produk maksimal 100 karakter'),
 
   sku: z
     .string({ message: 'SKU wajib diisi' })
+    .min(1, 'SKU wajib diisi')
     .min(2, 'SKU minimal 2 karakter')
     .max(50, 'SKU maksimal 50 karakter')
     .transform((val) => val.toUpperCase()),
