@@ -11,6 +11,7 @@ import {
   SearchX,
 } from 'lucide-react'
 import type { Product } from '@/types'
+import { formatRupiah } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -35,19 +36,6 @@ import {
 
 export interface ProductsTableProps {
   initialProducts: Product[]
-}
-
-/**
- * Format numeric value to Indonesian Rupiah (e.g. "Rp 12.500")
- */
-function formatRupiah(amount: number | null | undefined): string {
-  if (amount === null || amount === undefined) return '-'
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
 }
 
 export function ProductsTable({ initialProducts }: ProductsTableProps) {
