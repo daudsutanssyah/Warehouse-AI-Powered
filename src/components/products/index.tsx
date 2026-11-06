@@ -1,4 +1,6 @@
 export { default as ProductsTable } from './ProductsTable'
 export { default as TableSkeleton } from './TableSkeleton'
+export { default as ProductForm } from './ProductForm'
 export * from './ProductsTable'
 export * from './TableSkeleton'
+export * from './ProductForm'
