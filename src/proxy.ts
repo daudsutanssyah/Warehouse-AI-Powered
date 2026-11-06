@@ -27,7 +27,7 @@ const API_PROTECTED_PREFIX = [
   '/api/ai',
 ]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Start with a standard NextResponse.next that forwards the incoming request headers
   let supabaseResponse = NextResponse.next({
     request,
@@ -71,7 +71,6 @@ export async function middleware(request: NextRequest) {
   }
 
   // Validate the session token securely on the server with getUser()
-  // (Avoid getSession() in middleware because it only reads the unverified JWT from cookies)
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -108,6 +107,8 @@ export async function middleware(request: NextRequest) {
   // 4. Otherwise continue the request with updated session cookies
   return supabaseResponse
 }
+
+export default proxy
 
 // Route matcher configuration excluding static assets, images, and favicon
 export const config = {

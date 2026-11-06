@@ -1,4 +1,6 @@
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
@@ -9,7 +11,15 @@ import { LogOut, User as UserIcon, Mail, Fingerprint, Construction } from 'lucid
 // TEMPORARY: Minimal dashboard placeholder page.
 // Will be replaced with full metrics, charts, and warehouse AI insight widgets later.
 
-export default async function DashboardPage() {
+/**
+ * Inner component that reads the session behind a <Suspense> boundary.
+ * With cacheComponents enabled, cookies/session reads can't be prerendered
+ * into the static shell — they must stream in at request time.
+ */
+async function DashboardContent() {
+  // Signal that this component runs at request time
+  await connection()
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -99,3 +109,30 @@ export default async function DashboardPage() {
   )
 }
 
+/**
+ * Fallback skeleton while dashboard content loads.
+ */
+function DashboardSkeleton() {
+  return (
+    <PageContainer className="space-y-8">
+      <div className="space-y-2">
+        <div className="h-8 w-48 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-4 w-96 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+      </div>
+      <div className="h-32 animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
+      <div className="h-48 max-w-xl animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700" />
+    </PageContainer>
+  )
+}
+
+/**
+ * Dashboard page — the outer function prerenders as a static shell,
+ * while DashboardContent streams in behind the Suspense boundary.
+ */
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
+  )
+}

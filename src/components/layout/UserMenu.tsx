@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { createClient } from '@/lib/supabase/client'
 
 export interface UserMenuProps {
   user: {
@@ -24,9 +23,13 @@ export function UserMenu({ user }: UserMenuProps) {
   const initial = user.email ? user.email.charAt(0).toUpperCase() : 'U'
 
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      window.location.href = '/login'
+    }
   }
 
   return (
@@ -86,4 +89,3 @@ export function UserMenu({ user }: UserMenuProps) {
 }
 
 export default UserMenu
-
