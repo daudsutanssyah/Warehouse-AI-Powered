@@ -92,7 +92,7 @@ export function Sidebar({ className }: SidebarProps) {
           >
             Warehouse AI
           </Link>
-          <span className="text-xs text-blue-400">Powered by Claude AI</span>
+          <span className="text-xs text-blue-400">Powered by Gemini AI</span>
         </div>
       </div>
 
