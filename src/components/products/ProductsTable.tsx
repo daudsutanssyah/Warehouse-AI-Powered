@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { TableSkeleton } from '@/components/products/TableSkeleton'
 import {
   Table,
   TableHeader,
@@ -47,55 +48,6 @@ function formatRupiah(amount: number | null | undefined): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
-}
-
-/**
- * TableSkeleton component rendering 5 placeholder loading rows
- */
-function TableSkeleton() {
-  return (
-    <>
-      {[...Array(5)].map((_, i) => (
-        <TableRow key={i} className="animate-pulse">
-          {/* Produk */}
-          <TableCell>
-            <div className="space-y-1.5 py-1">
-              <Skeleton className="h-4 w-36" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          </TableCell>
-
-          {/* Kategori (hidden on mobile) */}
-          <TableCell className="hidden sm:table-cell">
-            <Skeleton className="h-5 w-20 rounded-full" />
-          </TableCell>
-
-          {/* Harga (hidden on mobile) */}
-          <TableCell className="hidden sm:table-cell">
-            <Skeleton className="h-4 w-20" />
-          </TableCell>
-
-          {/* Unit */}
-          <TableCell>
-            <Skeleton className="h-4 w-12" />
-          </TableCell>
-
-          {/* Status */}
-          <TableCell>
-            <Skeleton className="h-5 w-14 rounded-full" />
-          </TableCell>
-
-          {/* Aksi */}
-          <TableCell className="text-right">
-            <div className="flex items-center justify-end gap-1">
-              <Skeleton className="h-8 w-8 rounded-md" />
-              <Skeleton className="h-8 w-8 rounded-md" />
-            </div>
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  )
 }
 
 export function ProductsTable({ initialProducts }: ProductsTableProps) {
@@ -180,10 +132,11 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableSkeleton />
-            ) : products.length > 0 ? (
+          {isLoading ? (
+            <TableSkeleton />
+          ) : (
+            <TableBody>
+              {products.length > 0 ? (
               products.map((product) => (
                 <TableRow key={product.id}>
                   {/* 1. Produk: Name + SKU */}
@@ -315,6 +268,7 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
               </TableRow>
             )}
           </TableBody>
+        )}
         </Table>
       </div>
     </div>
@@ -322,3 +276,4 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
 }
 
 export default ProductsTable
+
