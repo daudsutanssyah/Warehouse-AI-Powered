@@ -108,7 +108,7 @@ export function Sidebar({ className }: SidebarProps) {
 
             return (
               <Link
-                key={item.href}
+                key={item.href} 
                 href={item.href}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors duration-150',

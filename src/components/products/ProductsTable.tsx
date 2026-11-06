@@ -11,6 +11,7 @@ import {
   SearchX,
   X,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Product } from '@/types'
 import { formatRupiah } from '@/lib/utils'
 import { useProducts } from '@/hooks/useProducts'
@@ -57,7 +58,12 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
       `Hapus produk ${product.name}? Stok produk ini juga akan dihapus.`
     )
     if (isConfirmed) {
-      await deleteProduct(product.id)
+      const result = await deleteProduct(product.id)
+      if (result.success) {
+        toast.success(`Produk "${product.name}" berhasil dihapus.`)
+      } else {
+        toast.error(result.error || 'Gagal menghapus produk.')
+      }
     }
   }
 

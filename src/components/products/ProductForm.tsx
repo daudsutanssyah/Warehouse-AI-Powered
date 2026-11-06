@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { Product } from '@/types'
 import { productSchema, type ProductFormData, type ProductFormInput } from '@/lib/validations/product'
@@ -113,14 +114,12 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         onSuccess()
       }
 
-      // Fallback notification
-      if (typeof window !== 'undefined') {
-        window.alert(
-          isEditMode
-            ? 'Produk berhasil diperbarui!'
-            : 'Produk berhasil ditambahkan!'
-        )
-      }
+      // Success notification
+      toast.success(
+        isEditMode
+          ? 'Produk berhasil diperbarui!'
+          : 'Produk berhasil ditambahkan!'
+      )
 
       router.push('/products')
       router.refresh()
