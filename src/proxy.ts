@@ -77,8 +77,12 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // Log incoming request and user session state
+  console.log(`[middleware] ${request.method} ${pathname} | user: ${user?.email ?? 'none'}`)
+
   // 1. If user is logged in and visits auth routes (/login, /register) -> redirect to /dashboard
   if (user && AUTH_ROUTES.includes(pathname)) {
+    console.log(`[middleware] Decision: Redirect -> /dashboard (authenticated user on auth route)`)
     const dashboardUrl = request.nextUrl.clone()
     dashboardUrl.pathname = '/dashboard'
     dashboardUrl.search = ''
@@ -90,6 +94,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith(prefix)
   )
   if (!user && isProtectedPage) {
+    console.log(`[middleware] Decision: Redirect -> /login?redirectTo=${pathname} (unauthenticated protected route)`)
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('redirectTo', pathname)
@@ -101,10 +106,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith(prefix)
   )
   if (!user && isProtectedApi) {
+    console.log(`[middleware] Decision: 401 Unauthorized (unauthenticated API route)`)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   // 4. Otherwise continue the request with updated session cookies
+  console.log(`[middleware] Decision: Allow request to ${pathname}`)
   return supabaseResponse
 }
 
