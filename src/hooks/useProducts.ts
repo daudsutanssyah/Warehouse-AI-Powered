@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { ApiResponse, Product } from '@/types'
 
 export interface UseProductsReturn {
@@ -19,9 +19,9 @@ export interface UseProductsReturn {
  * Custom hook for managing product data, search & category filtering,
  * and single product operations (delete & refetch).
  */
-export function useProducts(): UseProductsReturn {
-  const [products, setProducts] = useState<Product[]>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+export function useProducts(initialProducts?: Product[]): UseProductsReturn {
+  const [products, setProducts] = useState<Product[]>(initialProducts || [])
+  const [isLoading, setIsLoading] = useState<boolean>(!initialProducts)
   const [error, setError] = useState<string | null>(null)
 
   // Filters state
@@ -30,6 +30,9 @@ export function useProducts(): UseProductsReturn {
 
   // Debounced search state (300ms)
   const [debouncedSearch, setDebouncedSearch] = useState<string>(search)
+
+  // Track initial mount so initialProducts isn't immediately refetched
+  const isFirstMount = useRef(true)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -73,10 +76,16 @@ export function useProducts(): UseProductsReturn {
     }
   }, [debouncedSearch, category])
 
-  // Automatically fetch on mount and whenever debouncedSearch or category changes
+  // Automatically fetch when debouncedSearch or category changes, or on mount if no initialProducts
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      if (initialProducts) {
+        return
+      }
+    }
     fetchProducts()
-  }, [fetchProducts])
+  }, [fetchProducts, initialProducts])
 
   /**
    * Soft delete product by ID and refresh product list
@@ -120,3 +129,4 @@ export function useProducts(): UseProductsReturn {
 }
 
 export default useProducts
+
