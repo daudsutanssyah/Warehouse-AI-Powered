@@ -1,14 +1,11 @@
 import React from 'react'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { connection } from 'next/server'
-import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import type { Product } from '@/types'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import ProductsTable from '@/components/products/ProductsTable'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 export const instant = false
@@ -33,7 +30,7 @@ export default async function ProductsPage() {
     .from('products')
     .select('*')
     .eq('user_id', user.id)
-    .eq('is_active', true)
+    .or('is_active.eq.true,is_active.is.null')
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -55,14 +52,6 @@ export default async function ProductsPage() {
       <PageHeader
         title="Produk"
         description="Kelola semua produk yang ada di warehouse kamu."
-        action={
-          <Button asChild className="gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-xs">
-            <Link href="/products/new">
-              <Plus className="h-4 w-4" />
-              <span>Tambah Produk</span>
-            </Link>
-          </Button>
-        }
       />
 
       {/* Summary Chips Row */}
