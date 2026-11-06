@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { ApiResponse, Product } from '@/types'
+import { useDebounce } from './useDebounce'
 
 export interface UseProductsReturn {
   products: Product[]
   isLoading: boolean
   error: string | null
   search: string
+  debouncedSearch: string
   category: string
   setSearch: (value: string) => void
   setCategory: (value: string) => void
@@ -18,29 +20,24 @@ export interface UseProductsReturn {
 /**
  * Custom hook for managing product data, search & category filtering,
  * and single product operations (delete & refetch).
+ *
+ * Implements 300ms debounce for search input so API requests are only sent
+ * after the user stops typing, preventing excessive requests.
  */
 export function useProducts(initialProducts?: Product[]): UseProductsReturn {
   const [products, setProducts] = useState<Product[]>(initialProducts || [])
   const [isLoading, setIsLoading] = useState<boolean>(!initialProducts)
   const [error, setError] = useState<string | null>(null)
 
-  // Filters state
+  // Raw user inputs
   const [search, setSearch] = useState<string>('')
   const [category, setCategory] = useState<string>('')
 
-  // Debounced search state (300ms)
-  const [debouncedSearch, setDebouncedSearch] = useState<string>(search)
+  // Debounced search with 300ms delay
+  const debouncedSearch = useDebounce<string>(search, 300)
 
-  // Track initial mount so initialProducts isn't immediately refetched
+  // Track initial mount so server-provided initialProducts isn't immediately refetched
   const isFirstMount = useRef(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [search])
 
   /**
    * Fetch products with the current filter state
@@ -120,6 +117,7 @@ export function useProducts(initialProducts?: Product[]): UseProductsReturn {
     isLoading,
     error,
     search,
+    debouncedSearch,
     category,
     setSearch,
     setCategory,
@@ -129,4 +127,3 @@ export function useProducts(initialProducts?: Product[]): UseProductsReturn {
 }
 
 export default useProducts
-

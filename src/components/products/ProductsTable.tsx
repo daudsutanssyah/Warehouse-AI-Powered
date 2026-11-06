@@ -9,6 +9,7 @@ import {
   Trash2,
   Package,
   SearchX,
+  X,
 } from 'lucide-react'
 import type { Product } from '@/types'
 import { formatRupiah } from '@/lib/utils'
@@ -74,8 +75,18 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
             placeholder="Cari nama atau SKU produk..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 pr-8"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted-foreground hover:text-foreground"
+              aria-label="Bersihkan pencarian"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Right Controls: Category Filter + Tambah Produk Button */}
