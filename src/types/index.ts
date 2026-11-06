@@ -2,6 +2,7 @@
 export type ApiResponse<T> = {
   success: boolean
   data?: T
+  count?: number
   error?: string
 }
 
@@ -20,7 +21,11 @@ export type Product = {
   sku: string
   category: string | null
   price: number | null
+  unit?: string | null
+  description?: string | null
+  is_active?: boolean
   created_at: string
+  updated_at?: string
 }
 
 /** A physical warehouse location owned by a user */
