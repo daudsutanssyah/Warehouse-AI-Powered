@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,8 +43,12 @@ function getErrorMessage(message: string): string {
   return 'Terjadi kesalahan. Silakan coba lagi.'
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+  const safeRedirect = redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/dashboard'
+
   const [fields, setFields] = useState<FormFields>({ email: '', password: '' })
   const [errors, setErrors] = useState<FormErrors>({})
   const [serverError, setServerError] = useState('')
@@ -79,7 +83,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    router.push(safeRedirect)
   }
 
   return (
@@ -157,5 +161,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-md rounded-xl border bg-white p-8 shadow-md" />}>
+      <LoginForm />
+    </Suspense>
   )
 }
