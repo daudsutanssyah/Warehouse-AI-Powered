@@ -1,6 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import type { Product } from '@/types'
@@ -13,6 +14,9 @@ import { Badge } from '@/components/ui/badge'
 export const instant = false
 
 export default async function ProductsPage() {
+  // Opt out of prerendering and render at request time
+  await connection()
+
   const supabase = await createClient()
 
   // 1. Get authenticated user
