@@ -35,7 +35,16 @@ export type Warehouse = {
   name: string
   location: string | null
   max_capacity: number
+  capacity?: number
+  is_active?: boolean
   created_at: string
+  updated_at?: string
+}
+
+/** Warehouse with computed stock utilization metrics */
+export type WarehouseWithUtilization = Warehouse & {
+  total_stock: number
+  utilization_percent: number
 }
 
 /** Stock record linking a product to a warehouse with a quantity */
