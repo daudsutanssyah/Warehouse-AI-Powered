@@ -42,9 +42,26 @@ export type Warehouse = {
 }
 
 /** Warehouse with computed stock utilization metrics */
-export type WarehouseWithUtilization = Warehouse & {
+export interface WarehouseWithUtilization extends Warehouse {
   total_stock: number
   utilization_percent: number
+}
+
+/** Utilization status tier based on occupancy percentage */
+export type UtilizationStatus = 'safe' | 'warning' | 'danger' | 'critical'
+
+/**
+ * Returns utilization tier based on occupancy percentage:
+ * - <= 60%: safe
+ * - <= 80%: warning
+ * - <= 90%: danger
+ * - > 90%: critical
+ */
+export function getUtilizationStatus(percent: number): UtilizationStatus {
+  if (percent <= 60) return 'safe'
+  if (percent <= 80) return 'warning'
+  if (percent <= 90) return 'danger'
+  return 'critical'
 }
 
 /** Stock record linking a product to a warehouse with a quantity */
