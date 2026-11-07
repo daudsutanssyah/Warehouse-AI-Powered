@@ -1,4 +1,6 @@
 export { default as WarehouseCard } from './WarehouseCard'
 export { default as WarehouseGrid } from './WarehouseGrid'
+export { default as WarehouseForm } from './WarehouseForm'
 export * from './WarehouseCard'
 export * from './WarehouseGrid'
+export * from './WarehouseForm'
