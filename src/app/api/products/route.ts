@@ -197,7 +197,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 6. Return response
+    // 6. Automatically initialize stock (quantity = 0) in all active warehouses
+    const { data: activeWarehouses } = await supabase
+      .from('warehouses')
+      .select('id')
+      .eq('user_id', user.id)
+      .or('is_active.eq.true,is_active.is.null')
+
+    if (activeWarehouses && activeWarehouses.length > 0) {
+      const stockEntries = activeWarehouses.map((warehouse) => ({
+        product_id: insertedProduct.id,
+        warehouse_id: warehouse.id,
+        quantity: 0,
+      }))
+
+      await supabase
+        .from('stock')
+        .upsert(stockEntries, { onConflict: 'product_id,warehouse_id' })
+    }
+
+    // 7. Return response
     return NextResponse.json<ApiResponse<Product>>(
       {
         success: true,
