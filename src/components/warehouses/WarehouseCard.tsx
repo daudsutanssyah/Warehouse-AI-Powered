@@ -203,3 +203,4 @@ export function WarehouseCard({ warehouse, onEdit, onDelete }: WarehouseCardProp
 }
 
 export default WarehouseCard
+

@@ -84,3 +84,4 @@ export function WarehouseGrid({ initialWarehouses }: WarehouseGridProps) {
 }
 
 export default WarehouseGrid
+
