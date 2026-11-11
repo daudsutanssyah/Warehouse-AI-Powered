@@ -30,6 +30,7 @@ export interface StockSummary {
   total_products: number
   total_warehouses: number
   total_units: number
+  total_low_stock?: number
   low_stock_items: StockItemSummary[]
   out_of_stock_items: StockItemSummary[]
   warehouse_utilization: WarehouseUtilizationSummary[]
@@ -247,9 +248,9 @@ export async function getStockSummary(userId: string): Promise<StockSummary> {
     })
   }
 
-  // Low stock items: quantity <= 20, ordered by quantity ascending, limit 20
-  const lowStockItems = normalizedItems
-    .filter((item) => item.quantity <= 20)
+  // Low stock items: quantity <= 20
+  const allLowStock = normalizedItems.filter((item) => item.quantity <= 20)
+  const lowStockItems = [...allLowStock]
     .sort((a, b) => a.quantity - b.quantity)
     .slice(0, 20)
 
@@ -286,6 +287,7 @@ export async function getStockSummary(userId: string): Promise<StockSummary> {
     total_products: productCount || 0,
     total_warehouses: warehouses.length,
     total_units: totalUnits,
+    total_low_stock: allLowStock.length,
     low_stock_items: lowStockItems,
     out_of_stock_items: outOfStockItems,
     warehouse_utilization: warehouseUtilization,

@@ -1,16 +1,37 @@
 import React from 'react'
+import { redirect } from 'next/navigation'
+import { connection } from 'next/server'
 import {
   Package,
   Warehouse,
   AlertTriangle,
   BarChart3,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
+import { getStockSummary } from '@/lib/ai/data-fetcher'
+import { formatNumber } from '@/lib/utils'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import StatCard from '@/components/dashboard/StatCard'
 import { RestockInsightCard } from '@/components/dashboard/RestockInsightCard'
 
-export default function DashboardPage() {
+export const instant = false
+
+export default async function DashboardPage() {
+  await connection()
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  // Fetch real-time warehouse & inventory summary for authenticated user
+  const summary = await getStockSummary(user.id)
+
   return (
     <PageContainer className="space-y-8">
       {/* Page Header */}
@@ -24,7 +45,7 @@ export default function DashboardPage() {
         {/* Total Produk */}
         <StatCard
           title="Total Produk"
-          value="0"
+          value={formatNumber(summary.total_products)}
           description="produk terdaftar"
           icon={<Package className="h-5 w-5" />}
         />
@@ -32,7 +53,7 @@ export default function DashboardPage() {
         {/* Total Gudang */}
         <StatCard
           title="Total Gudang"
-          value="0"
+          value={formatNumber(summary.total_warehouses)}
           description="gudang aktif"
           icon={<Warehouse className="h-5 w-5" />}
         />
@@ -40,7 +61,7 @@ export default function DashboardPage() {
         {/* Item Stok Rendah */}
         <StatCard
           title="Item Stok Rendah"
-          value="0"
+          value={formatNumber(summary.total_low_stock ?? summary.low_stock_items.length)}
           description="perlu perhatian"
           icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
         />
@@ -48,7 +69,7 @@ export default function DashboardPage() {
         {/* Total Stok */}
         <StatCard
           title="Total Stok"
-          value="0"
+          value={formatNumber(summary.total_units)}
           description="unit di semua gudang"
           icon={<BarChart3 className="h-5 w-5" />}
         />
