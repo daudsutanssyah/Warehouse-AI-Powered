@@ -17,6 +17,7 @@ const PROTECTED_ROUTES_PREFIX = [
   '/warehouses',
   '/stock',
   '/chat',
+  '/settings',
 ]
 
 // API routes that require an authenticated session (returns 401 JSON)
@@ -117,10 +118,10 @@ export async function proxy(request: NextRequest) {
 
 export default proxy
 
-// Route matcher configuration excluding static assets, images, and favicon
+// Route matcher configuration excluding static assets, images, fonts, and favicon
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)',
   ],
 }
 
