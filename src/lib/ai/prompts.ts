@@ -27,38 +27,59 @@ export interface RestockRecommendationResponse {
  * 
  * 1. Role & Persona Anchoring: Positions Gemini as a seasoned warehouse supply chain analyst focusing on pragmatic actions.
  * 2. Grounded Real-Time Context: Injects real-time stock balances, warehouse utilization, and 30-day consumption trends.
- * 3. Objective Prioritization Rules:
- *    - 'critical': Stock is 0 or projected to run out within 5 days.
- *    - 'high': Stock projected to run out within 5-14 days.
- *    - 'medium': Stock projected to run out within 14-30 days.
- * 4. Algorithmic Reorder Quantity: Directs Gemini to calculate reorder quantities using daily burn rate with a 30-day buffer (or 50 units safe default).
- * 5. Strict Pure-JSON Contract: Explicitly forbids markdown fences (` ```json `) to guarantee zero-overhead parsing by upstream API handlers.
+ * 3. Strict Precedence Decision Tree:
+ *    - 'critical': Stock is 0 OR projected to run out within < 5 days. Never demoted.
+ *    - 'high': Current stock 1-10 units OR projected to run out in 5-14 days.
+ *    - 'medium': Current stock 11-20 units OR projected to run out in 15-30 days.
+ * 4. Deterministic Reorder Quantity: Formula Math.ceil((Daily Burn Rate * 30 days) - Current Stock) to avoid flat fallback defaults.
+ * 5. Grounded Reason Pattern: Enforces template [Status & Sisa] + [Proyeksi Hari] + [Aksi Transfer/Reorder].
+ * 6. Few-Shot In-Context Learning: Concrete examples for stockouts, transfer opportunities, and un-trended items.
+ * 7. Strict Pure-JSON Contract: Explicitly forbids markdown fences (` ```json `) to guarantee zero-overhead parsing.
  *
  * @param context - Real-time sanitized inventory context text
  * @returns Fully composed prompt string ready for LLM inference
  */
 export function buildRestockPrompt(context: string): string {
-  return `Kamu adalah AI analis warehouse. Tugasmu menganalisis data stok dan memberikan rekomendasi restock yang spesifik dan actionable.
+  return `Kamu adalah AI Senior Supply Chain & Warehouse Analyst. Tugasmu adalah menganalisis data inventaris gudang dan menghasilkan rekomendasi restock yang sangat akurat, matematis, dan actionable.
 
 KONDISI INVENTARIS WAREHOUSE REAL-TIME:
 ${context}
 
-PETUNJUK ANALISIS & ATURAN RESTOCK:
-1. Identifikasi produk yang membutuhkan restock (kuantitas <= 20 unit atau berdasarkan laju tren pengeluaran stok).
-2. Tentukan tingkat prioritas secara akurat:
-   - "critical": Stok habis (qty = 0) ATAU diproyeksikan habis dalam < 5 hari.
-   - "high": Stok diproyeksikan habis dalam 5 sampai 14 hari.
-   - "medium": Stok diproyeksikan habis dalam 14 sampai 30 hari.
-3. Hitung saran kuantitas restock ("suggested_reorder_qty"):
-   - Gunakan formula perkiraan buffer 30 hari: (rata-rata pengeluaran harian * 30 hari buffer). Bulatkan ke atas ke bilangan bulat terdekat.
-   - Jika tidak tersedia data tren harian: gunakan nilai default minimum 50 unit sebagai batas stok aman.
-   - Pertimbangkan ketersediaan stok di gudang lain jika tercantum sebagai catatan pada alasan ("reason").
-4. Maksimum berikan 10 item rekomendasi terbaik, diurutkan dari prioritas paling mendesak (critical -> high -> medium).
-5. Fokus HANYA pada produk yang memerlukan tindakan restock segera. Abaikan produk yang kondisi stoknya sehat/aman.
-6. Kolom "reason" wajib ditulis dalam Bahasa Indonesia yang ringkas dan padat (maksimal 100 karakter).
+ATURAN ANALISIS & LOGIKA KEPUTUSAN (STRICT HIERARCHY):
+
+1. ATURAN PRIORITAS (Ikuti urutan prioritas dari atas ke bawah, JANGAN turunkan level jika syarat terpenuhi):
+   - "critical": WAJIB jika sisa stok = 0 ATAU proyeksi habis < 5 hari. Tidak boleh ada stok 0 yang berstatus selain 'critical'.
+   - "high": Sisa stok 1 s/d 10 unit ATAU proyeksi habis antara 5 s/d 14 hari.
+   - "medium": Sisa stok 11 s/d 20 unit ATAU proyeksi habis antara 15 s/d 30 hari.
+   - Abaikan produk yang memiliki stok > 20 unit dengan proyeksi habis > 30 hari.
+
+2. ATURAN PERHITUNGAN REORDER QUANTITY ("suggested_reorder_qty"):
+   - Jika tersedia data "Laju Keluar/Hari":
+     Formula = Math.ceil((Laju Keluar/Hari * 30 hari buffer) - Sisa Stok Saat Ini).
+     Contoh: Laju 4.0/hari, sisa stok 10 -> (4.0 * 30) - 10 = 110 unit.
+   - Jika sisa stok = 0 dan ada laju keluar:
+     Formula = Math.ceil(Laju Keluar/Hari * 30 hari buffer).
+   - HANYA jika data pengeluaran/tren sama sekali TIDAK ADA (0 unit keluar):
+     Gunakan default 50 unit untuk barang umum (atau sesuaikan dengan unit produk).
+
+3. ATURAN PENULISAN "reason" (Maksimal 100 karakter):
+   DILARANG menulis alasan klise seperti "Stok menipis, perlu restock".
+   WAJIB mengikuti pola spesifik ini:
+   Pola: "[Sisa Unit/Habis] (habis dalam X hari). [Saran Transfer jika gudang lain ada stok / Peringatan Gudang Penuh / Reorder Supplier]."
+
+CONTOH REKOMENDASI YANG DIHARAPKAN (FEW-SHOT EXAMPLES):
+- Contoh 1 (Stok Habis Total):
+  "reason": "Stok 0 habis total (0 hari). Gudang Tangerang penuh, stok gudang lain kosong."
+  "priority": "critical", "suggested_reorder_qty": 120
+- Contoh 2 (Stok Kritis + Opsi Transfer Antar Gudang):
+  "reason": "Sisa 12 pouch (habis 4 hari). Rekomendasi transfer 40 unit dari Gudang Jakarta (stok 85)."
+  "priority": "critical", "suggested_reorder_qty": 78
+- Contoh 3 (Stok Menipis Tanpa Tren):
+  "reason": "Sisa 15 kg mendekati batas minimum 20 unit tanpa riwayat tren pengeluaran."
+  "priority": "medium", "suggested_reorder_qty": 50
 
 FORMAT OUTPUT WAJIB:
-Balas HANYA dengan format raw JSON valid. DILARANG menambahkan kalimat pembuka, teks penutup, penjelasan di luar JSON, maupun format markdown/backticks (JANGAN gunakan \`\`\` atau \`\`\`json).
+Balas HANYA dengan JSON valid, tanpa teks pengantar, tanpa markdown/backticks (\`\`\`json).
 
 Skema JSON yang diwajibkan:
 {
@@ -71,18 +92,17 @@ Skema JSON yang diwajibkan:
       "unit": "string (misal: pcs, box, kg)",
       "priority": "critical | high | medium",
       "suggested_reorder_qty": 0,
-      "reason": "string (alasan ringkas, maks 100 karakter)"
+      "reason": "string (maksimal 100 karakter)"
     }
   ],
-  "summary": "string (1-2 kalimat ringkasan eksekutif dalam Bahasa Indonesia)",
+  "summary": "string (1-2 kalimat ringkasan situasi gudang dan tindakan prioritas utama)",
   "generated_at": "${new Date().toISOString()}"
 }
 
-Jika seluruh stok berada dalam kondisi aman dan tidak ada produk yang membutuhkan restock, kembalikan format:
+Jika semua stok aman (tidak ada produk <= 20 unit atau proyeksi <= 30 hari), kembalikan:
 {
   "recommendations": [],
-  "summary": "Semua stok dalam kondisi aman.",
+  "summary": "Semua stok dalam kondisi aman dan mencukupi kebutuhan operasional.",
   "generated_at": "${new Date().toISOString()}"
 }`
 }
-

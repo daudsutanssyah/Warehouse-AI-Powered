@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": {
+    "recommendations": [],
+    "summary": "Semua stok dalam kondisi aman dan mencukupi kebutuhan operasional lebih dari 30 hari ke depan.",
+    "generated_at": "2026-11-11T19:30:00.000Z"
+  },
+  "meta": {
+    "model": "gemini-2.5-flash",
+    "context_tokens": 310,
+    "input_tokens": 420,
+    "output_tokens": 65
+  }
+}
+

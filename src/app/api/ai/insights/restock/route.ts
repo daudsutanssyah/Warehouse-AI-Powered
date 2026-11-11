@@ -11,6 +11,7 @@ import {
 import {
   buildRestockPrompt,
 } from '@/lib/ai/prompts'
+import { getMockRestockInsight } from '@/lib/ai/test-outputs'
 import type { RestockInsight, InsightResponse } from '@/types'
 
 /**
@@ -31,7 +32,11 @@ export async function GET(_request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 2. Check if AI service is configured (return 503 if not)
+    // 2. Check if AI service is configured (or return development mock if enabled)
+    if (process.env.USE_AI_MOCK === 'true') {
+      return NextResponse.json(getMockRestockInsight('good'))
+    }
+
     if (!isAIConfigured()) {
       return NextResponse.json(
         { error: 'AI tidak dikonfigurasi', configured: false },

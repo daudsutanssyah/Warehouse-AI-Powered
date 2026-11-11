@@ -1,0 +1,47 @@
+{
+  "_comment": "ANTI-PATTERN SAMPLE: Contoh output degradasi / prompt buruk sebagai baseline pembanding.",
+  "success": true,
+  "data": {
+    "recommendations": [
+      {
+        "product_name": "Beras Premium Pandan Wangi 5kg",
+        "sku": "BRS-001",
+        "warehouse_name": "Gudang Tangerang",
+        "current_quantity": 0,
+        "unit": "kg",
+        "priority": "medium",
+        "suggested_reorder_qty": 50,
+        "reason": "Stok produk ini menipis dan perlu segera dilakukan pemesanan ulang ke supplier."
+      },
+      {
+        "product_name": "Minyak Goreng Sawit 2L",
+        "sku": "MYK-002",
+        "warehouse_name": "Gudang Bekasi",
+        "current_quantity": 12,
+        "unit": "pouch",
+        "priority": "medium",
+        "suggested_reorder_qty": 50,
+        "reason": "Barang ini stoknya tinggal sedikit di gudang, mohon segera ditambah persediaannya."
+      },
+      {
+        "product_name": "Gula Pasir Putih 1kg",
+        "sku": "GL-003",
+        "warehouse_name": "Gudang Tangerang",
+        "current_quantity": 18,
+        "unit": "kg",
+        "priority": "medium",
+        "suggested_reorder_qty": 50,
+        "reason": "Stok barang di bawah batas normal dan harus segera di-restock."
+      }
+    ],
+    "summary": "Beberapa produk di gudang berada dalam kondisi stok menipis dan disarankan untuk melakukan restock segera.",
+    "generated_at": "2026-11-11T19:30:00.000Z"
+  },
+  "meta": {
+    "model": "gemini-2.5-flash",
+    "context_tokens": 420,
+    "input_tokens": 450,
+    "output_tokens": 210
+  }
+}
+

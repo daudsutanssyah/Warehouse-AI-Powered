@@ -1,0 +1,56 @@
+{
+  "success": true,
+  "data": {
+    "recommendations": [
+      {
+        "product_name": "Beras Premium Pandan Wangi 5kg",
+        "sku": "BRS-001",
+        "warehouse_name": "Gudang Tangerang",
+        "current_quantity": 0,
+        "unit": "kg",
+        "priority": "critical",
+        "suggested_reorder_qty": 120,
+        "reason": "Stok 0 habis total (0 hari). Gudang Tangerang penuh (100%), stok gudang lain kosong."
+      },
+      {
+        "product_name": "Minyak Goreng Sawit 2L",
+        "sku": "MYK-002",
+        "warehouse_name": "Gudang Bekasi",
+        "current_quantity": 12,
+        "unit": "pouch",
+        "priority": "critical",
+        "suggested_reorder_qty": 78,
+        "reason": "Sisa 12 pouch (habis 4 hari). Rekomendasi transfer 40 unit dari Gudang Jakarta (stok 85)."
+      },
+      {
+        "product_name": "Gula Pasir Putih 1kg",
+        "sku": "GL-003",
+        "warehouse_name": "Gudang Tangerang",
+        "current_quantity": 18,
+        "unit": "kg",
+        "priority": "high",
+        "suggested_reorder_qty": 42,
+        "reason": "Sisa 18 kg (habis 9 hari). Rekomendasi transfer dari Gudang Jakarta (stok 200 kg)."
+      },
+      {
+        "product_name": "Tepung Terigu Serbaguna 1kg",
+        "sku": "TPG-004",
+        "warehouse_name": "Gudang Bekasi",
+        "current_quantity": 15,
+        "unit": "kg",
+        "priority": "medium",
+        "suggested_reorder_qty": 45,
+        "reason": "Sisa 15 kg (habis 18 hari). Reorder buffer bulanan ke supplier untuk menjaga stok aman."
+      }
+    ],
+    "summary": "Terdapat 2 produk berprioritas kritis yang membutuhkan tindakan segera: Beras Premium habis total di Gudang Tangerang dan Minyak Goreng di Bekasi dapat dipenuhi lewat transfer stok dari Gudang Jakarta.",
+    "generated_at": "2026-11-11T19:30:00.000Z"
+  },
+  "meta": {
+    "model": "gemini-2.5-flash",
+    "context_tokens": 420,
+    "input_tokens": 580,
+    "output_tokens": 340
+  }
+}
+

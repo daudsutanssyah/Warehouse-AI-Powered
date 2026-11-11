@@ -1,0 +1,46 @@
+{
+  "success": true,
+  "data": {
+    "recommendations": [
+      {
+        "product_name": "Kecap Manis 600ml",
+        "sku": "KCP-005",
+        "warehouse_name": "Gudang Tangerang",
+        "current_quantity": 4,
+        "unit": "botol",
+        "priority": "critical",
+        "suggested_reorder_qty": 56,
+        "reason": "Sisa 4 botol (habis 2 hari). Gudang Tangerang penuh; transfer 50 botol dari Gudang Jakarta (stok 120)."
+      },
+      {
+        "product_name": "Kopi Bubuk Arabika 250g",
+        "sku": "KOP-006",
+        "warehouse_name": "Gudang Bekasi",
+        "current_quantity": 8,
+        "unit": "pack",
+        "priority": "high",
+        "suggested_reorder_qty": 82,
+        "reason": "Sisa 8 pack (habis 6 hari). Gudang Jakarta surplus 150 pack; disarankan transfer internal antar gudang."
+      },
+      {
+        "product_name": "Susu UHT Full Cream 1L",
+        "sku": "SSU-007",
+        "warehouse_name": "Gudang Tangerang",
+        "current_quantity": 10,
+        "unit": "karton",
+        "priority": "high",
+        "suggested_reorder_qty": 65,
+        "reason": "Sisa 10 karton (habis 10 hari). Stok di gudang lain kosong, ajukan PO supplier ke Gudang Bekasi."
+      }
+    ],
+    "summary": "Kebutuhan mendesak di Gudang Tangerang dan Bekasi dapat dioptimalkan terlebih dahulu melalui transfer surplus dari Gudang Jakarta sebelum melakukan purchase order baru.",
+    "generated_at": "2026-11-11T19:30:00.000Z"
+  },
+  "meta": {
+    "model": "gemini-2.5-flash",
+    "context_tokens": 510,
+    "input_tokens": 690,
+    "output_tokens": 290
+  }
+}
+
