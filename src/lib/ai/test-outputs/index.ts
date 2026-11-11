@@ -33,6 +33,17 @@ export function getMockRestockInsight(
   }
 }
 
+export const DEMO_USER_EMAILS = ['akundemo@gmail.com', 'demo@warehouse.ai']
+
+/**
+ * Checks whether the given user email belongs to the portfolio demo / recruiter account.
+ */
+export function isDemoUser(email?: string | null): boolean {
+  if (!email) return false
+  const lower = email.toLowerCase()
+  return DEMO_USER_EMAILS.includes(lower) || lower.includes('demo')
+}
+
 export {
   goodResponse,
   badResponse,

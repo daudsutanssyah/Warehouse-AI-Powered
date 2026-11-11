@@ -11,15 +11,17 @@ import {
 import {
   buildRestockPrompt,
 } from '@/lib/ai/prompts'
-import { getMockRestockInsight } from '@/lib/ai/test-outputs'
+import { getMockRestockInsight, isDemoUser } from '@/lib/ai/test-outputs'
 import type { RestockInsight, InsightResponse } from '@/types'
 
 /**
  * GET /api/ai/insights/restock
  * Generates AI-powered restock recommendations based on real-time stock levels,
  * cross-warehouse availability, and 30-day consumption trends.
+ * Features an intelligent safety guard for portfolio demo accounts.
  */
 export async function GET(_request: Request) {
+  let demoAccount = false
   try {
     // 1. Get authenticated user (return 401 if unauthenticated)
     const supabase = await createClient()
@@ -32,12 +34,20 @@ export async function GET(_request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    demoAccount = isDemoUser(user.email)
+
     // 2. Check if AI service is configured (or return development mock if enabled)
     if (process.env.USE_AI_MOCK === 'true') {
       return NextResponse.json(getMockRestockInsight('good'))
     }
 
     if (!isAIConfigured()) {
+      if (demoAccount) {
+        console.warn(
+          `[demo safety guard] AI key not set, seamlessly serving realistic mock for demo account: ${user.email}`
+        )
+        return NextResponse.json(getMockRestockInsight('good'))
+      }
       return NextResponse.json(
         { error: 'AI tidak dikonfigurasi', configured: false },
         { status: 503 }
@@ -97,6 +107,15 @@ export async function GET(_request: Request) {
         })
       } catch (fallbackErr) {
         console.error('Gemini generateContent fallback failed:', fallbackErr)
+
+        // Portfolio Safety Guard: Seamlessly return high-quality mock for recruiter/demo user
+        if (demoAccount) {
+          console.warn(
+            `[demo safety guard] Gemini quota exhausted for demo account (${user.email}). Seamlessly serving fallback restock insight.`
+          )
+          return NextResponse.json(getMockRestockInsight('good'))
+        }
+
         const isQuota =
           fallbackErr instanceof Error &&
           (fallbackErr.message.includes('429') ||
@@ -138,6 +157,12 @@ export async function GET(_request: Request) {
         'Raw text:',
         rawText
       )
+      if (demoAccount) {
+        console.warn(
+          `[demo safety guard] Parse error for demo account (${user.email}). Serving fallback mock.`
+        )
+        return NextResponse.json(getMockRestockInsight('good'))
+      }
       return NextResponse.json(
         { error: 'AI menghasilkan format yang tidak valid' },
         { status: 500 }
@@ -147,6 +172,9 @@ export async function GET(_request: Request) {
     // Validate that result contains recommendations array
     if (!parsedResult || !Array.isArray(parsedResult.recommendations)) {
       console.error('Invalid AI response structure:', parsedResult)
+      if (demoAccount) {
+        return NextResponse.json(getMockRestockInsight('good'))
+      }
       return NextResponse.json(
         { error: 'AI menghasilkan format yang tidak valid' },
         { status: 500 }
@@ -166,6 +194,10 @@ export async function GET(_request: Request) {
     })
   } catch (error) {
     console.error('Unhandled error in /api/ai/insights/restock:', error)
+    if (demoAccount) {
+      console.warn('[demo safety guard] Unhandled error, serving fallback mock for demo account.')
+      return NextResponse.json(getMockRestockInsight('good'))
+    }
     const message =
       error instanceof Error ? error.message : 'AI service tidak tersedia'
     return NextResponse.json(

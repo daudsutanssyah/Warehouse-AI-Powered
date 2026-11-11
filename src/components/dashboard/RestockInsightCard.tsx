@@ -279,7 +279,6 @@ export function RestockInsightCard() {
       {/* Footer */}
       <CardFooter className="pt-0 pb-3 flex items-center justify-between text-xs text-muted-foreground border-t border-border/40 mt-1 pt-3">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-blue-500" />
           <span>Dianalisis oleh Gemini AI</span>
         </div>
       </CardFooter>

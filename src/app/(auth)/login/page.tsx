@@ -60,6 +60,15 @@ function LoginForm() {
     setErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
+  function handleFillDemo() {
+    setFields({
+      email: 'akundemo@gmail.com',
+      password: 'demolahkak',
+    })
+    setErrors({})
+    setServerError('')
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setServerError('')
@@ -152,6 +161,25 @@ function LoginForm() {
           {loading ? 'Masuk...' : 'Masuk'}
         </Button>
       </form>
+
+      {/* Demo Account Box */}
+      <div className="mt-5 rounded-lg border bg-muted/40 p-3.5 text-xs text-foreground">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium text-foreground">Akun Demo</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleFillDemo}
+            className="h-7 px-2.5 text-xs font-medium cursor-pointer"
+          >
+            Gunakan Akun Demo
+          </Button>
+        </div>
+        <p className="mt-2 text-muted-foreground">
+          Demo Account: <span className="font-mono text-foreground font-medium select-all">akundemo@gmail.com | demolahkak</span>
+        </p>
+      </div>
 
       {/* Footer Link */}
       <p className="mt-6 text-center text-sm text-muted-foreground">
