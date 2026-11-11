@@ -1,17 +1,14 @@
 import React from 'react'
-import Link from 'next/link'
 import {
   Package,
   Warehouse,
   AlertTriangle,
   BarChart3,
-  Sparkles,
 } from 'lucide-react'
 import PageContainer from '@/components/layout/PageContainer'
 import PageHeader from '@/components/layout/PageHeader'
 import StatCard from '@/components/dashboard/StatCard'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { RestockInsightCard } from '@/components/dashboard/RestockInsightCard'
 
 export default function DashboardPage() {
   return (
@@ -57,31 +54,8 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* AI Insights Placeholder Card */}
-      <Card className="border-2 border-dashed bg-muted/20">
-        <CardContent className="flex flex-col items-center justify-center px-4 py-12 text-center sm:py-16">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-500 shadow-xs dark:bg-blue-950/60 dark:text-blue-400">
-            <Sparkles className="h-8 w-8 text-blue-500 dark:text-blue-400" />
-          </div>
-
-          <h3 className="text-lg font-semibold text-foreground sm:text-xl">
-            AI Insight Dashboard
-          </h3>
-
-          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
-            AI insight akan muncul di sini setelah kamu menambahkan data produk dan gudang.
-          </p>
-
-          <div className="mt-6">
-            <Button asChild className="gap-2">
-              <Link href="/products">
-                <Package className="h-4 w-4" />
-                Tambah Produk Pertama
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* AI Restock Insights */}
+      <RestockInsightCard />
     </PageContainer>
   )
 }

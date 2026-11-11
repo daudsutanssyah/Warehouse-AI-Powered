@@ -102,3 +102,36 @@ export type ChatMessage = {
   content: string
   created_at: string
 }
+
+export type InsightPriority = 'critical' | 'high' | 'medium' | 'low'
+
+export interface RestockItem {
+  product_name: string
+  sku: string
+  warehouse_name: string
+  current_quantity: number
+  unit: string
+  priority: InsightPriority
+  suggested_reorder_qty: number
+  reason: string
+}
+
+export interface RestockInsight {
+  recommendations: RestockItem[]
+  summary: string
+  generated_at: string
+}
+
+export interface InsightMeta {
+  model: string
+  context_tokens: number
+  input_tokens: number
+  output_tokens: number
+}
+
+export interface InsightResponse<T> {
+  success: boolean
+  data: T
+  meta: InsightMeta
+}
+

@@ -11,7 +11,7 @@ import { sanitizeForAI, validateContextSize } from '@/lib/ai/sanitize'
  * 
  * GET /api/ai/health
  */
-export async function GET() {
+export async function GET(_request: Request) {
   try {
     // 1. Check if GEMINI_API_KEY is configured
     if (!isAIConfigured()) {
@@ -47,23 +47,38 @@ export async function GET() {
     console.log('=== AI HEALTH CHECK CONTEXT ===\n', sanitizedContext)
     console.log(sanitizedContext)
 
-    // 5. Send test prompt to Gemini using AI_MODELS.FAST
-    const prompt = `${sanitizedContext}\n\nBerikan satu kalimat ringkasan kondisi warehouse ini.`
-    const response = await gemini.models.generateContent({
-      model: AI_MODELS.FAST,
-      contents: prompt,
-      config: {
-        systemInstruction:
-          'You are a warehouse AI assistant. Answer in Bahasa Indonesia. Be concise.',
-      },
-    })
+    // 5. Send test prompt to Gemini with automatic fallback on quota exhaustion
+    const prompt = `${sanitizedContext}\n\nBerikan ringkasan eksekutif kondisi warehouse ini (maksimal 2-3 kalimat). WAJIB sebutkan secara spesifik nama setiap produk yang habis dan kritis beserta sisa unit dan lokasinya. DILARANG menggunakan generalisasi seperti "beberapa produk lain". Sertakan rekomendasi transfer jika stok tersedia di gudang lain.`
+    let modelUsed: string = AI_MODELS.FAST
+    let response
+
+    try {
+      response = await gemini.models.generateContent({
+        model: modelUsed,
+        contents: prompt,
+        config: {
+          systemInstruction:
+            'You are an expert warehouse AI assistant. Answer in Bahasa Indonesia. Be direct, concise, and explicitly name all affected products instead of grouping them vaguely.',
+        },
+      })
+    } catch {
+      modelUsed = AI_MODELS.FALLBACK
+      response = await gemini.models.generateContent({
+        model: modelUsed,
+        contents: prompt,
+        config: {
+          systemInstruction:
+            'You are an expert warehouse AI assistant. Answer in Bahasa Indonesia. Be direct, concise, and explicitly name all affected products instead of grouping them vaguely.',
+        },
+      })
+    }
 
     const summaryText = response.text?.trim() || ''
 
     // 6. Return diagnostic report
     return NextResponse.json({
       status: 'ok',
-      model: AI_MODELS.FAST,
+      model: modelUsed,
       context_tokens: estimatedTokens,
       summary: summaryText,
       data_preview: {

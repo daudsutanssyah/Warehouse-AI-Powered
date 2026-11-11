@@ -53,35 +53,45 @@ export function buildStockContext(summary: StockSummary): string {
     }
   }
 
-  // 3. Gabungan Stok Habis & Kritis dalam format Tabular
-  const allCriticalItems = [
-    ...summary.out_of_stock_items.map((item) => ({ ...item, isOutOfStock: true })),
-    ...summary.low_stock_items
-      .filter((item) => item.quantity > 0)
-      .map((item) => ({ ...item, isOutOfStock: false })),
-  ]
-
-  if (allCriticalItems.length === 0) {
-    parts.push('\n[STATUS STOK]: Tidak ada stok habis maupun kritis (semua stok > 20 unit).')
-  } else {
-    parts.push('\n[PERHATIAN STOK: HABIS & KRITIS (<= 20 UNIT)]')
+  // 3. Daftar Produk Habis (Stok = 0)
+  if (summary.out_of_stock_items.length > 0) {
+    parts.push('\n[DAFTAR PRODUK HABIS (STOK = 0)]')
     parts.push(
-      '| Produk (SKU) | Lokasi Gudang | Sisa Stok | Status | Stok di Gudang Lain (Peluang Transfer) |'
+      '| Produk (SKU) | Lokasi Gudang | Sisa Stok | Stok di Gudang Lain (Peluang Transfer) |'
     )
-    parts.push('|---|---|---|---|---|')
+    parts.push('|---|---|---|---|')
 
-    const displayed = allCriticalItems.slice(0, 15)
-    for (const item of displayed) {
-      const status = item.isOutOfStock ? '**HABIS (0)**' : `KRITIS (${item.quantity} ${item.unit})`
+    for (const item of summary.out_of_stock_items.slice(0, 10)) {
       const otherWhText = formatOtherWarehouses(item.other_warehouses)
       parts.push(
-        `| ${item.product_name} (${item.sku}) | ${item.warehouse_name} | ${item.quantity} ${item.unit} | ${status} | ${otherWhText} |`
+        `| ${item.product_name} (${item.sku}) | ${item.warehouse_name} | 0 ${item.unit} (HABIS) | ${otherWhText} |`
+      )
+    }
+  } else {
+    parts.push('\n[DAFTAR PRODUK HABIS]: Tidak ada stok habis (semua produk memiliki stok).')
+  }
+
+  // 4. Daftar Produk Kritis (Stok Menipis <= 20 Unit)
+  const criticalItems = summary.low_stock_items.filter((item) => item.quantity > 0)
+  if (criticalItems.length > 0) {
+    parts.push('\n[DAFTAR PRODUK KRITIS (STOK MENIPIS <= 20 UNIT)]')
+    parts.push(
+      '| Produk (SKU) | Lokasi Gudang | Sisa Stok | Stok di Gudang Lain (Peluang Transfer) |'
+    )
+    parts.push('|---|---|---|---|')
+
+    for (const item of criticalItems.slice(0, 15)) {
+      const otherWhText = formatOtherWarehouses(item.other_warehouses)
+      parts.push(
+        `| ${item.product_name} (${item.sku}) | ${item.warehouse_name} | ${item.quantity} ${item.unit} | ${otherWhText} |`
       )
     }
 
-    if (allCriticalItems.length > 15) {
-      parts.push(`*(...dan ${allCriticalItems.length - 15} item kritis lainnya)*`)
+    if (criticalItems.length > 15) {
+      parts.push(`*(...dan ${criticalItems.length - 15} produk kritis lainnya)*`)
     }
+  } else {
+    parts.push('\n[DAFTAR PRODUK KRITIS]: Tidak ada produk dengan stok kritis (semua stok > 20 unit).')
   }
 
   return parts.join('\n')
