@@ -24,10 +24,23 @@ export function getMockRestockInsight(
   variant: MockVariant = 'good'
 ): InsightResponse<RestockInsight> {
   const template = MOCK_RESPONSES[variant] || MOCK_RESPONSES.good
+  const recommendations = (template.data?.recommendations || []).map((item) => {
+    let priority = item.priority
+    const qty =
+      typeof item.current_quantity === 'number'
+        ? item.current_quantity
+        : Number(item.current_quantity) || 0
+    if (qty <= 5 && variant !== 'bad') {
+      priority = 'critical'
+    }
+    return { ...item, priority }
+  })
+
   return {
     ...template,
     data: {
       ...template.data,
+      recommendations,
       generated_at: new Date().toISOString(),
     },
   }

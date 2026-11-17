@@ -24,7 +24,7 @@ Folder ini menyimpan kumpulan contoh (*baseline dataset*) respons AI dari Gemini
 
 | Kriteria | ✅ Output Baik (`good-restock-response.json`) | ❌ Output Buruk (`bad-restock-response.json`) |
 | :--- | :--- | :--- |
-| **Priority** | Stok 0 atau habis $< 5$ hari **wajib** `critical`. Bertingkat jelas (`critical` -> `high` -> `medium`). | Stok 0 diberi label `medium`. Semua item berprioritas sama. |
+| **Priority** | Stok $\le 5$ unit (termasuk 0, 1, 2 unit) atau proyeksi habis $< 5$ hari **wajib** `critical`. Bertingkat jelas (`critical` -> `high` -> `medium`). | Stok $\le 5$ unit (misal stok 0 atau 2 unit) diberi label `medium`. Semua item berprioritas sama. |
 | **Reorder Qty** | Berdasarkan formula $\lceil (\text{Laju Keluar} \times 30) - \text{Sisa Stok} \rceil$. Kuantitas variatif dan realistis. | Angka flat seragam (selalu 50) terlepas dari laju tren. |
 | **Reason** | Spesifik: Menyebutkan sisa unit, estimasi hari, dan opsi transfer gudang lain. | Klise dan generik: *"Stok menipis dan perlu restock segera"*. |
 | **Summary** | Menyebutkan produk penting yang paling kritis dan langkah tindakan spesifik. | Generalisasi samar: *"Beberapa produk di gudang berstatus menipis"*. |

@@ -189,6 +189,8 @@ export function RestockInsightCard() {
               {displayedRecommendations.map((item, index) => {
                 const isOutOfStock = item.current_quantity === 0
                 const isVeryLow = item.current_quantity <= 10
+                const effectivePriority =
+                  item.current_quantity <= 5 ? 'critical' : item.priority
                 const stockColorClass = isOutOfStock
                   ? 'text-red-600 dark:text-red-400 font-semibold'
                   : isVeryLow
@@ -208,7 +210,7 @@ export function RestockInsightCard() {
                     {/* Left: Priority Badge & Product Info */}
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="pt-0.5 shrink-0">
-                        <PriorityBadge priority={item.priority} />
+                        <PriorityBadge priority={effectivePriority} />
                       </div>
                       <div className="min-w-0 space-y-0.5">
                         <p className="text-sm font-medium text-foreground truncate">

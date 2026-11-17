@@ -22,7 +22,7 @@ Aplikasi telah di-deploy secara publik dan siap diuji langsung:
 ## ✨ Fitur Utama (Key Features)
 
 ### 1. 🤖 AI-Powered Restock Insights (Google Gemini AI)
-- **Deteksi Kritis & Stok Habis Otomatis:** Menganalisis kondisi stok real-time untuk mendeteksi barang habis ($0$ unit) dan kritis ($\le 20$ unit).
+- **Deteksi Kritis & Stok Habis Otomatis:** Menganalisis kondisi stok real-time untuk mendeteksi barang habis ($0$ unit) dan stok kritis ($\le 5$ unit atau proyeksi habis $< 5$ hari) dengan status *Critical*, serta klasifikasi berjenjang (*High* dan *Medium*).
 - **Kuantitas Reorder Dinamis:** Menghitung saran jumlah pemesanan ulang (*reorder quantity*) berbasis formula laju pengeluaran harian dan buffer 30 hari:
   $$\text{Reorder Qty} = \lceil (\text{Laju Pengeluaran/Hari} \times 30) - \text{Sisa Stok} \rceil$$
 - **Rekomendasi Transfer Antar Gudang:** Jika stok di suatu gudang menipis tetapi gudang lain memiliki surplus, AI secara cerdas menyarankan transfer internal sebelum mengajukan Purchase Order baru ke supplier.

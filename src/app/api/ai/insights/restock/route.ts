@@ -181,6 +181,47 @@ export async function GET(_request: Request) {
       )
     }
 
+    // 8b. Priority Normalization & Deterministic Sanity Enforcement (Defense-in-Depth for AI Output)
+    // Enforces strict supply chain business logic:
+    // - Any item with current_quantity <= 5 (such as 0, 1, 2 units) MUST be 'critical'
+    // - Any item with current_quantity between 6 and 10 and tagged as 'medium' is upgraded to 'high'
+    // - Sort output by priority descending ('critical' -> 'high' -> 'medium') then lowest stock first
+    const priorityWeight: Record<string, number> = {
+      critical: 3,
+      high: 2,
+      medium: 1,
+      low: 0,
+    }
+
+    parsedResult.recommendations = parsedResult.recommendations
+      .map((item) => {
+        let priority = item.priority
+        const qty =
+          typeof item.current_quantity === 'number'
+            ? item.current_quantity
+            : Number(item.current_quantity) || 0
+
+        // Strict business rule: Stock <= 5 is on the verge of stockout -> MUST be critical
+        if (qty <= 5) {
+          priority = 'critical'
+        } else if (qty <= 10 && priority === 'medium') {
+          priority = 'high'
+        }
+
+        return {
+          ...item,
+          priority,
+        }
+      })
+      .sort((a, b) => {
+        const weightA = priorityWeight[a.priority] ?? 0
+        const weightB = priorityWeight[b.priority] ?? 0
+        if (weightB !== weightA) {
+          return weightB - weightA
+        }
+        return (a.current_quantity ?? 0) - (b.current_quantity ?? 0)
+      })
+
     // 9. Return success response with metadata
     return NextResponse.json<InsightResponse<RestockInsight>>({
       success: true,

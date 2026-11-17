@@ -28,8 +28,9 @@ export interface RestockRecommendationResponse {
  * 1. Role & Persona Anchoring: Positions Gemini as a seasoned warehouse supply chain analyst focusing on pragmatic actions.
  * 2. Grounded Real-Time Context: Injects real-time stock balances, warehouse utilization, and 30-day consumption trends.
  * 3. Strict Precedence Decision Tree:
- *    - 'critical': Stock is 0 OR projected to run out within < 5 days. Never demoted.
- *    - 'high': Current stock 1-10 units OR projected to run out in 5-14 days.
+ *    - 'critical': Stock is <= 5 units (e.g. 0, 1, 2, 3, 4, 5 units) OR projected to run out within < 5 days.
+ *                  Products with 2 units or less MUST ALWAYS be 'critical' (emergency stockout threshold).
+ *    - 'high': Current stock 6-10 units OR projected to run out in 5-14 days.
  *    - 'medium': Current stock 11-20 units OR projected to run out in 15-30 days.
  * 4. Deterministic Reorder Quantity: Formula Math.ceil((Daily Burn Rate * 30 days) - Current Stock) to avoid flat fallback defaults.
  * 5. Grounded Reason Pattern: Enforces template [Status & Sisa] + [Proyeksi Hari] + [Aksi Transfer/Reorder].
@@ -47,16 +48,25 @@ ${context}
 
 ATURAN ANALISIS & LOGIKA KEPUTUSAN (STRICT HIERARCHY):
 
-1. ATURAN PRIORITAS (Ikuti urutan prioritas dari atas ke bawah, JANGAN turunkan level jika syarat terpenuhi):
-   - "critical": WAJIB jika sisa stok = 0 ATAU proyeksi habis < 5 hari. Tidak boleh ada stok 0 yang berstatus selain 'critical'.
-   - "high": Sisa stok 1 s/d 10 unit ATAU proyeksi habis antara 5 s/d 14 hari.
-   - "medium": Sisa stok 11 s/d 20 unit ATAU proyeksi habis antara 15 s/d 30 hari.
-   - Abaikan produk yang memiliki stok > 20 unit dengan proyeksi habis > 30 hari.
+1. ATURAN PRIORITAS (STRICT PRECEDENCE & HIERARCHY - DILARANG MENURUNKAN LEVEL):
+   - "critical" (KRITIS / DARURAT TINGGI - WAJIB PRIORITAS UTAMA):
+     * WAJIB untuk SEMUA produk dengan sisa stok <= 5 unit (misal: 0, 1, 2, 3, 4, 5 unit).
+     * PRODUK DENGAN SISA STOK 2 UNIT WAJIB BERSTATUS "critical", DILARANG KERAS DIBERI "medium" ATAU "high"! Stok 2 unit berada di ambang kehabisan stok total (darurat operasional) terlepas dari laju proyeksi hari atau ketiadaan riwayat transaksi.
+     * WAJIB juga jika proyeksi stok habis dalam < 5 hari (meskipun jumlah stok fisik > 5 unit).
+     * DILARANG menurunkan status produk dengan stok <= 5 unit ke level yang lebih rendah dalam kondisi apapun.
+   - "high" (TINGGI):
+     * Sisa stok 6 s/d 10 unit ATAU proyeksi habis antara 5 s/d 14 hari (dan belum memenuhi kriteria "critical").
+   - "medium" (SEDANG):
+     * Sisa stok 11 s/d 20 unit ATAU proyeksi habis antara 15 s/d 30 hari. DILARANG memberikan status "medium" pada produk dengan stok <= 5 unit (termasuk stok 2 unit).
+   - Abaikan:
+     * Produk yang memiliki stok aman > 20 unit DENGAN proyeksi habis > 30 hari.
 
 2. ATURAN PERHITUNGAN REORDER QUANTITY ("suggested_reorder_qty"):
    - Jika tersedia data "Laju Keluar/Hari":
      Formula = Math.ceil((Laju Keluar/Hari * 30 hari buffer) - Sisa Stok Saat Ini).
      Contoh: Laju 4.0/hari, sisa stok 10 -> (4.0 * 30) - 10 = 110 unit.
+   - Jika sisa stok <= 5 unit dan ada laju keluar:
+     Formula = Math.ceil((Laju Keluar/Hari * 30 hari buffer) - Sisa Stok Saat Ini). Jika hasilnya < 30, bulatkan minimal 30-50 unit untuk keamanan buffer operasional.
    - Jika sisa stok = 0 dan ada laju keluar:
      Formula = Math.ceil(Laju Keluar/Hari * 30 hari buffer).
    - HANYA jika data pengeluaran/tren sama sekali TIDAK ADA (0 unit keluar):
@@ -65,16 +75,19 @@ ATURAN ANALISIS & LOGIKA KEPUTUSAN (STRICT HIERARCHY):
 3. ATURAN PENULISAN "reason" (Maksimal 100 karakter):
    DILARANG menulis alasan klise seperti "Stok menipis, perlu restock".
    WAJIB mengikuti pola spesifik ini:
-   Pola: "[Sisa Unit/Habis] (habis dalam X hari). [Saran Transfer jika gudang lain ada stok / Peringatan Gudang Penuh / Reorder Supplier]."
+   Pola: "[Sisa Unit/Habis] (kondisi/habis dalam X hari). [Saran Transfer jika gudang lain ada stok / Peringatan Gudang Penuh / Reorder Supplier]."
 
 CONTOH REKOMENDASI YANG DIHARAPKAN (FEW-SHOT EXAMPLES):
 - Contoh 1 (Stok Habis Total):
   "reason": "Stok 0 habis total (0 hari). Gudang Tangerang penuh, stok gudang lain kosong."
   "priority": "critical", "suggested_reorder_qty": 120
-- Contoh 2 (Stok Kritis + Opsi Transfer Antar Gudang):
+- Contoh 2 (Stok 2 Unit / Sangat Kritis di Ambang Habis):
+  "reason": "Sisa 2 unit di ambang stockout. Segera transfer dari Hub Jakarta atau PO supplier."
+  "priority": "critical", "suggested_reorder_qty": 60
+- Contoh 3 (Stok Kritis + Opsi Transfer Antar Gudang):
   "reason": "Sisa 12 pouch (habis 4 hari). Rekomendasi transfer 40 unit dari Gudang Jakarta (stok 85)."
   "priority": "critical", "suggested_reorder_qty": 78
-- Contoh 3 (Stok Menipis Tanpa Tren):
+- Contoh 4 (Stok Menipis Tanpa Tren):
   "reason": "Sisa 15 kg mendekati batas minimum 20 unit tanpa riwayat tren pengeluaran."
   "priority": "medium", "suggested_reorder_qty": 50
 

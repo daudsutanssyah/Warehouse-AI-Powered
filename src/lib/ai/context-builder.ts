@@ -82,8 +82,10 @@ export function buildStockContext(summary: StockSummary): string {
 
     for (const item of criticalItems.slice(0, 15)) {
       const otherWhText = formatOtherWarehouses(item.other_warehouses)
+      const urgencyTag =
+        item.quantity <= 5 ? ' (SANGAT KRITIS / AMBANG HABIS)' : ''
       parts.push(
-        `| ${item.product_name} (${item.sku}) | ${item.warehouse_name} | ${item.quantity} ${item.unit} | ${otherWhText} |`
+        `| ${item.product_name} (${item.sku}) | ${item.warehouse_name} | ${item.quantity} ${item.unit}${urgencyTag} | ${otherWhText} |`
       )
     }
 
@@ -122,10 +124,12 @@ export function buildTrendContext(trends: StockTrend[]): string {
     parts.push('|---|---|---|---|---|---|')
 
     for (const t of urgentTrends) {
-      const urgencyNote =
-        t.days_until_empty! <= 3
-          ? `**${t.days_until_empty} hari (SEGERA HABIS)**`
-          : `${t.days_until_empty} hari`
+      const isUltraLowStock = t.current_quantity <= 5
+      const urgencyNote = isUltraLowStock
+        ? `**${t.current_quantity} unit (KRITIS: AMBANG HABIS)**`
+        : t.days_until_empty! <= 3
+        ? `**${t.days_until_empty} hari (SEGERA HABIS)**`
+        : `${t.days_until_empty} hari`
 
       const otherWhText = formatOtherWarehouses(t.other_warehouses)
       const skuText = t.sku ? ` (${t.sku})` : ''
